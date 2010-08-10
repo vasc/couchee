@@ -1,0 +1,51 @@
+#shows_list li {
+    clear:both;
+    margin-left:64px;
+    padding-top:8px;
+}
+li {
+    list-style-image:none;
+    list-style-position:outside;
+    list-style-type:none;
+}
+body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, code, form, fieldset, legend, input, textarea, p, blockquote, th, td {
+    margin:0;
+    padding:0;
+}
+body {
+border-top:22px solid #555555;
+color: #333333;
+font-family:helvetica,arial,sans-serif;
+font-size:12px;
+font-size-adjust:none;
+font-style:normal;
+font-variant:normal;
+font-weight:normal;
+line-height:15px;
+}
+
+#shows_list .title {
+color:#996633;
+font-weight:bold;
+padding-left:2px;
+}
+
+a, a * {
+color:#006699;
+text-decoration:none;
+}
+
+#shows_list .link{
+font-size:11px;
+line-height:14px;
+padding-left:4px;
+}
+
+
+#shows_list .meta{
+color:#808080;
+display:inline;
+font-size:11px;
+line-height:14px;
+padding-left:6px;
+}

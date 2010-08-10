@@ -1,0 +1,34 @@
+DROP TABLE IF EXISTS Rls;
+CREATE TABLE Rls(
+	id INT AUTO_INCREMENT,
+    rlsname VARCHAR(200) NOT NULL,
+    filename VARCHAR(200) NOT NULL,
+    rlsdate DATETIME NOT NULL,
+    downloadcount INT NOT NULL DEFAULT 0,
+    PRIMARY KEY(id)
+);
+
+DROP TABLE IF EXISTS Tvshow;
+CREATE TABLE Tvshow(
+    name VARCHAR(200) NOT NULL,
+    imgfile VARCHAR(200),
+    link VARCHAR(200),
+    description VARCHAR(200),
+    PRIMARY KEY(name)
+);
+
+DROP TABLE IF EXISTS Extrls;
+CREATE TABLE Extrls(
+    id INT NOT NULL,
+    season INT NOT NULL,
+    episode INT NOT NULL,
+    title VARCHAR(200),
+    link VARCHAR(200),
+    airdate DATETIME,
+    tvshow INT NOT NULL,
+    PRIMARY KEY(id), 
+	CONSTRAINT FOREIGN KEY (id) REFERENCES Rls(id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT FOREIGN KEY (tvshow) REFERENCES Tvshow(name) ON DELETE CASCADE ON UPDATE CASCADE
+);
+	
+	
