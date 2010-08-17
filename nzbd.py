@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
 import headers
-import nzbs
+from nzbs import organize, date, download, meta
 import os
 import logging
+
 
 if __name__ == "__main__":
     #print os.getcwd()
@@ -16,16 +17,16 @@ if __name__ == "__main__":
     headers.main(group_name = 'alt.binaries.moovee')
     #print "doen"
     #print "organizing nzbs...",
-    nzbs.organize_nzbs()
+    organize.organize_nzbs()
     #print "done"
     #print "tagging nzbs...",
-    nzbs.tag_nzbs()
+    organize.tag_nzbs()
     #print "done"
     #print "datting nzbs...",
-    nzbs.date_nzbs()
+    date.date_nzbs()
     #print "done"
     #print "downloading nzbs...",
-    nzbs.download_nzbs()
-    nzbs.id_movies()
+    download.download_nzbs()
+    meta.id_movies()
     logging.info("Ending nzbd") 
     #print "done"
