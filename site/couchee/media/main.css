@@ -1,8 +1,13 @@
+#shows_list{
+    margin-top: 16px;
+}
+
 #shows_list li {
     clear:both;
     margin-left:64px;
     padding-top:8px;
 }
+
 li {
     list-style-image:none;
     list-style-position:outside;
@@ -13,7 +18,7 @@ body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, code, form, fiel
     padding:0;
 }
 body {
-border-top:22px solid #555555;
+border-top:26px solid #555555;
 color: #333333;
 font-family:helvetica,arial,sans-serif;
 font-size:12px;
@@ -24,7 +29,7 @@ font-weight:normal;
 line-height:15px;
 }
 
-#shows_list .title {
+#shows_list .rlsname {
 color:#996633;
 font-weight:bold;
 padding-left:2px;
@@ -35,14 +40,14 @@ color:#006699;
 text-decoration:none;
 }
 
-#shows_list .link{
+#shows_list .imdb{
 font-size:11px;
 line-height:14px;
 padding-left:4px;
 }
 
 
-#shows_list .meta{
+#shows_list .age{
 color:#808080;
 display:inline;
 font-size:11px;

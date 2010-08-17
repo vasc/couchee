@@ -7,7 +7,7 @@ import logging
 
 if __name__ == "__main__":
     #print os.getcwd()
-    os.chdir('/home/vasco/projects/moviedatabase')
+    #os.chdir('/home/vasco/projects/moviedatabase')
     logging.basicConfig(filename='nzbd.log',level=logging.INFO, format='[%(levelname)s] %(asctime)s %(message)s')
     logging.info("Starting nzbd")
     #print os.getcwd()
@@ -26,5 +26,6 @@ if __name__ == "__main__":
     #print "done"
     #print "downloading nzbs...",
     nzbs.download_nzbs()
+    nzbs.id_movies()
     logging.info("Ending nzbd") 
     #print "done"
