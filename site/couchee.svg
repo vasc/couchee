@@ -1,0 +1,29 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<svg width="100%" height="100%" version="1.1"
+xmlns="http://www.w3.org/2000/svg">
+
+<path d="M0 43 
+         v60 
+		 q0 20 20 20 
+		 h190 
+		 q20 0 20 -20 
+		 v-60 
+		 q0 -20 -20 -20 
+		 h-5 
+		 a32,32 -50 0,0 -50,-15
+		 a30,30 -50 0,0 -40,0
+		 a30,30 -50 0,0 -40,0
+		 a32,32 -50 0,0 -50,15
+		 h-5
+		 q -20 0 -20 20
+		 z
+		 M35 48
+		 h160
+		 v5
+		 h-160
+		 z"/>
+
+</svg>

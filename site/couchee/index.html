@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Couchee Broadcast</title>   
+    <link rel="stylesheet" href="/media/main.css" type="text/css" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script type="text/javascript" src="/media/raphael-min.js"></script>
+    <script type="text/javascript" src="/media/script.js"></script>
+  </head>
+  <body id="index" class="home">
+    <div id="header">
+      <span id="logo"></span>
+      <span id="logo_text">coucheeb</span>
+      <!--<div class="clear"></div>-->
+    </div>
+    <div id="grad"></div>
+    <div id="wrapper">
+        <div id="covers">
+          <span class="menu">hide</span>
+          <h1>Featured Movies</h1>
+          <ul>
+          {% for c in covers %}
+            <li>
+              <img src="{{ c.link }}" height="193px" width="134px" />
+              <span>{{ c.name }}</span>
+            </li>
+          {% endfor %}
+          <ul>
+          <div class="clear"></div>
+        </div>
+        <div id="filters">
+          <h2>Movie List</h2>
+          <span style="float: right;">
+            <span class="label">order by:</span>
+            <span class="filter" id="order">date</span>
+            
+            <span class="label">direction:</span>
+            <span class="filter" id="direction">desc</span>
+            
+            <span class="label">rating:</span>
+            <span class="filter" id="rating">all</span>
+            
+            <span class="label">votes:</span>
+            <span class="filter" id="votes">all</span>
+          </span>
+          <div class="clear"></div>
+        </div>
+        <div id="shows_wrapper">
+          {% include "items.html" %}
+          <div id="pagination">
+            <span id="moreitems"><span id="quote">»</span> load more items</span>
+          </div>
+        </div>
+        <div style="margin-left: 60px; width: 2000px">
+        </div>
+        <div class="clear">
+      </div>
+    </div>
+  </body>
+  <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-18145593-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+</html>

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import headers
-from nzbs import organize, date, download, meta
+from nzbs import organize, date, download, meta, upload
 import os
 import logging
 
@@ -9,7 +9,7 @@ import logging
 if __name__ == "__main__":
     #print os.getcwd()
     #os.chdir('/home/vasco/projects/moviedatabase')
-    logging.basicConfig(filename='nzbd.log',level=logging.INFO, format='[%(levelname)s] %(asctime)s %(message)s')
+    logging.basicConfig(filename='/var/nzbs/nzbd.log',level=logging.INFO, format='[%(levelname)s] %(asctime)s %(message)s')
     logging.info("Starting nzbd")
     #print os.getcwd()
     #print "downloading headers...",
@@ -28,5 +28,8 @@ if __name__ == "__main__":
     #print "downloading nzbs...",
     download.download_nzbs()
     meta.id_movies()
+    upload.upload_nzbs()
+    upload.publish_nzbs()
+    
     logging.info("Ending nzbd") 
     #print "done"

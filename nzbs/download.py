@@ -21,6 +21,15 @@ def download_articles(nntp, articles):
         os.remove(info['tmpfilename'])
     return nzbfile
 
+def get_folder(nzb):
+    db = pymongo.Connection().usenet
+    folder = db.config.find_one({'type': 'folder', 'category': 'undefined'})['folder'] 
+    if 'category' in nzb:
+        c = db.config.find_one({'type': 'folder', 'category': nzb['category']})
+        if c: folder = c['folder']
+    return folder
+        
+
 
 def download_nzb(nzb_id, count=0):
     try:
@@ -44,11 +53,7 @@ def download_nzb(nzb_id, count=0):
         if 'rlsname' in nzb: filename = nzb['rlsname'] + ".nzb.gz"
         nzb['file'] = filename
         
-        folder = db.config.find_one({'type': 'folder', 'category': 'undefined'})['folder'] 
-        if 'category' in nzb:
-            c = db.config.find_one({'type': 'folder', 'category': nzb['category']})
-            if c: folder = c['folder']
-        
+        folder = get_folder(nzb)
         
         f = gzip.open(os.path.join(folder, filename), 'wb')
         f.write(nzbfile)
@@ -58,7 +63,7 @@ def download_nzb(nzb_id, count=0):
             os.utime(os.path.join(folder, nzb['file']), (t, t))
 
         nzb['stage'] = 2
-        nzb['stages'].append('donwloaded')
+        nzb['stages']['downloaded'] = True
         #del nzb['articles']
         db.nzbs.save(nzb)
         logging.info("Downloaded %s" % nzb['rlsname'])

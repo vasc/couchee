@@ -1,4 +1,4 @@
-application: couchee
+application: coucheeb
 version: 1
 runtime: python
 api_version: 1
@@ -6,6 +6,10 @@ api_version: 1
 handlers:
 - url: /media
   static_dir: media
+  
+- url: /favicon.ico
+  static_files: media/favicon.ico
+  upload: media/favicon.ico
 
 - url: .*
   script: couchee.py

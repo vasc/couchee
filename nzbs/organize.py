@@ -21,7 +21,7 @@ def organize_nzbs():
                        'group': h['group'],
                        'articles': [], 
                        'stage': 0,
-                       'stages': []
+                       'stages': {}
                       }
             article = {'msgid': h['_id'], 'part': part, 'date': h['date']}
             nzb['articles'].append(article)
@@ -50,7 +50,7 @@ def moovee_tag(nzb, db):
         nzb['tags'].append('#a.b.moovee@EFNet')
         nzb['category'] = 'moovee'
         nzb['stage'] = 1
-        nzb['stages'].append('tagged')
+        nzb['stages']['tagged'] = True
         db.nzbs.save(nzb)
         logging.info("Tagged %s as '#a.b.moovee@EFNet'" % nzb['rlsname'])
 
@@ -64,7 +64,7 @@ def tv_tag(nzb, db):
         nzb['tags'].append('#a.b.teevee@EFNet')
         nzb['category'] = 'teevee'
         nzb['stage'] = 1
-        nzb['stages'].append('tagged')
+        nzb['stages']['tagged'] = True
         db.nzbs.save(nzb)
         logging.info("Tagged %s as '#a.b.teevee@EFNet'" % nzb['rlsname'])
         

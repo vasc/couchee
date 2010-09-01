@@ -1,0 +1,11 @@
+<ul id="shows_list">
+      {% for d in days %}
+        <li class="date">{{ d.day }}</li>
+        {% for m in d.movies %}
+        <li>
+          <!--**{{ m.counter }}. --><a href="{{ m.nzblink }}"><span class="rlsname">{{ m.rlsname }}</span></a>
+          <span class="stars">{% if m.imdbinfo %}{{ m.rating }} {{ m.votes }}{% endif %}</span> <a href="{{ m.imdblink }}" class="button imdb">imdb</a><a href="{{ m.rtlink }}" class="button rt">rt</a>
+        </li>
+        {% endfor %}
+      {% endfor%}
+      </ul>
