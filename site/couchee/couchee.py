@@ -1,19 +1,5 @@
 #!/usr/bin/env python
-#
-# Copyright 2007 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+
 import cgi
 from datetime import datetime
 import wsgiref.handlers
@@ -26,95 +12,147 @@ from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.api import memcache
+from django.utils import simplejson
 
 import util
 from models import Movie, Cover
 from upload import Upload, UploadCover, ServeHandler
 import api
 import re
+from decorators import validate
+import logging as l
 
 
-def get_movies(cursor=None):
-    q = Movie.all().order('-nzbdate')
+def get_movies(order, direction, minvotes, maxvotes, minrating, maxrating, total_count=20, cursor=None):
+    key = "[movies]%s;%s;%s;%s;%s;%s;%s;%s" % (order, direction, minvotes, maxvotes, minrating, maxrating, total_count, cursor)
+    movies = memcache.get(key, namespace="movies")
+    #if movies:
+    #    l.info('Memcache hit in movies')
+    #    return movies
+
+
+    q = Movie.all()
+
+    l.info((order, direction, minvotes, maxvotes, minrating, maxrating))
+    maxrating = int(maxrating*10)
+    minrating = int(minrating*10)
+    if maxvotes > 200000: maxvotes = ()
+
+    prefix = ''
+    if direction == 'descending': prefix = '-'
+
+    #if minvotes > 0: q = q.filter('imdbvotes >=', minvotes)
+    #if maxvotes < 300000: q = q.filter('imdbvotes <=', maxvotes)
+
+    #if minrating > 0: q = q.filter('imdbrating >=', minrating)
+    #if maxrating < 100: q = q.filter('imdbrating <=', minrating)
+
+    if order == 'age': q = q.order(prefix+'nzbdate')
+    if order == 'name': q = q.order(prefix+'rlsname')
+    if order == 'imdbrating': q = q.order(prefix+'imdbrating')
+    if order == 'imdbvotes': q = q.order(prefix+'imdbvotes')
+
     if cursor: q = q.with_cursor(cursor)
-    
-    tm = {}
-    for m in q.fetch(50):
+
+    #tm = {}
+    tm = []
+    i = []
+    count = 0
+    date = None
+    for m in q:
+        if count == 20: break
+        if not m.imdbrating: m.imdbrating = 0
+        if not m.imdbvotes: m.imdbvotes = 0
+
+        #How nice, a table scan :(
+        if not (minrating <= m.imdbrating <= maxrating and minvotes <= m.imdbvotes <= maxvotes):
+          continue
+        else:
+          count += 1
+
         if m.imdbid == None:
-            m.imdbid = re.search('tt\d{7}', m.imdblink).group(0)
-            #m.put()
-    
-        template_movie = {}
+           m.imdbid = re.search('tt\d{7}', m.imdblink).group(0)
+           #m.put()
+
+        template_movie = {'type': 'movie'}
         #template_movie['counter'] = count
         template_movie['nzblink'] = m.nzblink
         template_movie['rlsname'] = m.rlsname
         template_movie['prettydate'] = util.pretty_date(m.nzbdate)
         template_movie['imdblink'] = m.imdblink
         template_movie['rtlink'] = 'http://www.rottentomatoes.com/alias?type=imdbid&s=%s' % m.imdbid[2:]
-        
+
         if m.imdbinfo:
-            template_movie['imdbinfo'] = True
+            template_movie['imdbinfo?'] = True
             template_movie['rating'] = m.imdbinfo.rating / 10.0
             template_movie['votes'] = m.imdbinfo.votes
+            template_movie['imdbinfo'] = m.imdbinfo
+            if m.imdbinfo.covers.count(1):
+              template_movie['cover'] = '/serve/%s' % m.imdbinfo.covers[0].blobkey.key()
+              i.append(template_movie)
         else:
-            template_movie['imdbinfo'] = True
-        #count += 1
-        
-        date = m.nzbdate.date()
-        if not date in tm: tm[date] = {'d': date, 'day': date.strftime('%A, %d %B %Y'), 'movies': []}
-        tm[date]['movies'].append(template_movie)
-    return (tm, q.cursor())
+            template_movie['imdbinfo?'] = False
 
-class MoreItems(webapp.RequestHandler):
+        if not date == m.nzbdate.date():
+            date = m.nzbdate.date()
+            tm.append({'d': date, 'day': date.strftime('%A, %d %B %Y'), 'type': 'date'})
+        #if not date in tm: tm[date] = {'d': date, 'day': date.strftime('%A, %d %B %Y'), 'movies': []}
+        tm.append(template_movie)
+        if count >= total_count: break
+
+    movies = (tm, i, q.cursor())
+    memcache.set(key, movies, namespace='movies')
+    return movies
+
+class AllItems(webapp.RequestHandler):
   def get(self):
-    req = self.request.get('uuid')
-    if not req: return
-    cursor = memcache.get(req)
-    if not cursor: return
-    movies = get_movies(cursor)
-    self.response.out.write(template.render('items.html', {'days': sorted(movies[0].values(), reverse=True)}))
+    def jsonize(l, m):
+      if 'rlsname' in m:
+          return l + [m['rlsname']]
+      else:
+          return l
 
-class MainPage(webapp.RequestHandler):
-  def get(self, order="newer", page=1):
-    if not order in ['newer', 'older', 'popular', 'rating']:
-        self.response.set_status(404)
-        return
-    movies = get_movies()
+    movies = get_movies('name', 'ascending', 0, (), 0, 10, total_count=())
+    self.response.out.write(simplejson.dumps(reduce(jsonize, movies[0], [])))
+
+class ListMovies(webapp.RequestHandler):
+
+  @validate('filter')
+  def get(self, order, direction, minvotes, maxvotes, minrating, maxrating, cursor=None):
+    movies = get_movies(order, direction, minvotes, maxvotes, minrating, maxrating, cursor=cursor)
     tm = movies[0]
-    cursor_uuid = uuid4()
-    memcache.set(str(cursor_uuid), movies[1])
+
+    cursor = movies[2]
+
+    if memcache.get(str(cursor)):
+      cursor_uuid = memcache.get(str(cursor))
+    else:
+      cursor_uuid = uuid4()
+      memcache.set('cursors.' + cursor_uuid.hex, cursor)
+      memcache.set(str(movies[2]), cursor_uuid)
+
     template_values = {}
-    template_values['days'] = sorted(tm.values(), reverse=True)
-    template_values['covers'] = []
-    for cover in Cover.all():
-      template_values['covers'].append({'link': '/serve/%s' % cover.blobkey.key(), 'name': cover.imdbinfo.name}) 
-    
-    self.response.out.write(template.render('index.html', template_values))
+    template_values['items'] = tm
+    template_values['filter'] = {'order': order, 'direction': direction, 'minvotes': minvotes, 'maxvotes': maxvotes, 'minrating': minrating, 'maxrating': maxrating}
+    template_values['more_items'] = {'link': '?order=%s&direction=%s&minvotes=%s&maxvotes=%s&minrating=%s&maxrating=%s&cursor=%s' % (order, direction, minvotes, maxvotes, minrating, maxrating, cursor_uuid.hex)}
+    #l.info(template_values)
+    self.response.out.write(template.render('list_movies.html', template_values))
+
+    #for cover in template_values['covers']:
+    #  cover['link'] = '/serve/%s' % cover['imdbinfo'].covers[0].blobkey.key()
     #print '/moreitems/?uuid=' + str(cursor_uuid)
-    
-class DisplayCovers(webapp.RequestHandler):
-  def get(self):
-    self.response.out.write("""<!DOCTYPE html>
-<html lang="en">
-  <head>
-  </head>
-  <body>""")
-    for cover in Cover.all().fetch(22):
-      img = '    <img src="/serve/%s" height="240px" width="160px" />' % cover.blobkey.key() 
-      self.response.out.write(img)
-    self.response.out.write("""  </body>
-</html>""")
-        
+
+
 application = webapp.WSGIApplication([
-  ('/', MainPage),
-  ('/moreitems/', MoreItems),
-  ('/covers/', DisplayCovers),
+  ('/', ListMovies),
+  ('/allitems.json', AllItems),
   ('/upload', Upload),
   ('/upload_cover', UploadCover),
-  ('/api/missing/([^/]+)/([^/]+)/', api.Missing),
   ('/api/imdbinfo/(tt\d{7})/', api.ImdbInfo),
+  ('/api/nzblink/(tt\d{7})/', api.NzbLink),
+  ('/api/dummy/', api.Dummy),
   ('/serve/([^/]+)?', ServeHandler),
-], debug=True)
+], debug=False)
 
 
 def main():
@@ -123,3 +161,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

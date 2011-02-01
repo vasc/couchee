@@ -7,6 +7,7 @@ from google.appengine.api import memcache
 from datetime import datetime
 import urllib
 import logging
+import re
 
 from models import Movie, Cover, ImdbInfo
 
@@ -23,10 +24,14 @@ class Upload(webapp.RequestHandler):
             m = Movie(key_name=self.request.get('nzblink'))
             m.rlsname = self.request.get('rlsname')
             m.imdblink = self.request.get('imdblink')
+            m.imdbid = re.search('tt\d{7}', m.imdblink).group(0)
             m.nzblink = self.request.get('nzblink')
             m.nzbdate = datetime.strptime(self.request.get('nzbdate'), "%Y-%m-%d %H:%M:%S")
+            
+            info = ImdbInfo.get_by_key_name(m.imdbid)
+            if info: m.imdbinfo = info
             m.put()
-            self.redirect('/')
+            self.redirect('/api/dummy/')
         else:
             self.response.set_status(403)
             self.response.out.write('Password is not correct')
@@ -45,14 +50,14 @@ class UploadCover(blobstore_handlers.BlobstoreUploadHandler):
         if not info: 
             logging.error("CoverUpload: imdbinfo for id '%s' does not exist" % imdbid)
             blobstore.delete(upload.key())
-            self.redirect('/')
+            self.redirect('/api/dummy/')
             return
             
         i = Cover.get_by_key_name(hexhash)
         if i:
             logging.warning("CoverUpload: hash('%s') of new upload with imdb id('%s') already present" % (hexhash, imdbid))
             blobstore.delete(upload.key())
-            self.redirect('/')
+            self.redirect('/api/dummy/')
             return
         
         i = Cover(key_name=hexhash, imdbinfo=info)
@@ -62,7 +67,7 @@ class UploadCover(blobstore_handlers.BlobstoreUploadHandler):
         i.put()
         logging.info("CoverUpload: uploaded cover with imdbid: %s" % imdbid)
         
-        self.redirect('/')
+        self.redirect('/api/dummy/')
         
     def get(self):
         if self.request.get('secret') == 'e8aAqE7pFcKjuTnAoTe4':

@@ -1,0 +1,25 @@
+{
+  "name": "Couchee Links",
+  "description": "Creates links on IMDB.com pages to nzb files",
+  "version": "0.5",
+  "permissions": ["contextMenus", "tabs", "http://coucheeb.appspot.com/api/nzblink/*"],
+  "background_page": "background.html",
+  "icons": {
+    "16": "couchee16.png",
+    "24": "couchee24.png",
+    "32": "couchee32.png",
+    "48": "couchee48.png",
+    "64": "couchee64.png"
+  },
+  "page_action": {
+    "default_icon": "binsearch.png",
+    "default_title": "Search in binsearch.info"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*.imdb.com/*"],
+      "js": ["jquery-1.5.min.js", "content.js"]
+    }
+  ]
+}
+

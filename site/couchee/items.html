@@ -1,11 +1,13 @@
-<ul id="shows_list">
-      {% for d in days %}
-        <li class="date">{{ d.day }}</li>
-        {% for m in d.movies %}
-        <li>
-          <!--**{{ m.counter }}. --><a href="{{ m.nzblink }}"><span class="rlsname">{{ m.rlsname }}</span></a>
-          <span class="stars">{% if m.imdbinfo %}{{ m.rating }} {{ m.votes }}{% endif %}</span> <a href="{{ m.imdblink }}" class="button imdb">imdb</a><a href="{{ m.rtlink }}" class="button rt">rt</a>
+     <ul id="shows_list">
+      {% for i in items %}
+        {% ifequal i.type "date" %}
+        <li class="date">{{ i.day }}</li>
+        {% endifequal %}
+        {% ifequal i.type "movie" %}
+        <li class="movie" data-cover="{{ i.cover }}">
+          <a href="{{ i.nzblink }}"><span class="rlsname">{{ i.rlsname }}</span></a>
+          <span class="stars">{% if i.imdbinfo %}{{ i.rating }} {{ i.votes }}{% endif %}</span> <a href="{{ i.imdblink }}" class="extrabutton imdb">imdb</a><a href="{{ i.rtlink }}" class="extrabutton rt">rt</a>
         </li>
-        {% endfor %}
+        {% endifequal %}
       {% endfor%}
-      </ul>
+     </ul>

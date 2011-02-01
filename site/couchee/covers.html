@@ -1,0 +1,15 @@
+          <ul>
+          {% for c in covers %}
+            <li>
+                <img src="{{ c.link }}" height="193px" width="134px" />
+                <div class="stuff">
+                    <div>title</div>
+                    <div>6.0, 1000 votes</div>
+                    <div>director: director</div>
+                    <div>cast: cast, cast</div>
+                </div>
+                <div>{{ c.name }}</div>
+            </li>
+          {% endfor %}
+          <ul>
+

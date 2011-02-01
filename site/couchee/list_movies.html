@@ -1,0 +1,61 @@
+{% extends "index.html" %}
+
+{% block content %}
+        <div id="filters">
+          <div class="menu" style="float: right;">
+            <form action="/" method="get">
+              <input type="hidden" name="order" value="{{ filter.order }}" />
+              <input type="hidden" name="direction" value="{{ filter.direction }}" />
+              <input type="hidden" name="minrating" value="{{ filter.minrating }}" />
+              <input type="hidden" name="maxrating" value="{{ filter.maxrating }}" />
+              <input type="hidden" name="minvotes" value="{{ filter.minvotes }}" />
+              <input type="hidden" name="maxvotes" value="{{ filter.maxvotes }}" />
+            </form>
+            <div>
+              <div class="label">Order by:</div>
+              <ul class="filter" id="order">
+                <li><a href="?order=age" rel="age">Age</a></li>
+                <li><a href="?order=name" rel="name">Name</a></li>
+                <li><a href="?order=imdbrating" rel="imdbrating">IMDB Rating</a></li>
+                <li><a href="?order=imdbvotes" rel="imdbvotes">IMDB Votes</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <div class="label">Direction:</div>
+              <ul class="filter" id="direction">
+                <li><a href="?direction=ascending" rel="ascending">Ascending</a></li>
+                <li><a href="?direction=descending" rel="descending">Descending</a></li>
+              </ul>
+            </div>
+            
+            <div id="rating_filter">
+              <div class="label">IMDB Rating:</div>
+              <ul class="filter" style="margin-left: 40px;">
+                <li class="rating"><span style="float: left;">Min: <span class="min">0.0</span></span><span>Max: <span class="max">10.0</span></span></li>
+                <li id="rating_slider"></li>
+              </ul>
+            </div>
+            
+            <div id="votes_filter">
+              <div class="label">IMDB Votes:</div>
+              <ul class="filter" style="margin-left: 40px;">
+                <li class="votes"><span style="float: left;">Min: <span class="min">0</span></span><span>Max: <span class="max">No limit</span></span></li>
+                <li id="votes_slider"></li>
+              </ul>
+            </div>
+            <a href="javascript:$('#filters form').submit();"><div class="button">show</div></a>
+          </div>
+          <h1>Movie List</h1>
+          <!--<div class="clear"></div>-->
+        </div>
+        <div id="shows_wrapper">
+          {% include "items.html" %}
+          <a name="insert"></a>
+          <div id="pagination">
+            <a id="moreitems" href="{{ more_items.link }}" rel="/moreitems/{{ more_items.link }}" ><span class="button"><span id="quote">»</span> load more items</span></a>
+          </div>
+        </div>
+        <div class="clear"></div>
+{% endblock %}
+

@@ -35,3 +35,5 @@ class Movie(db.Model):
   image = db.StringProperty()
   imdbinfo = db.ReferenceProperty(ImdbInfo, collection_name='releases')
   imdbid = db.StringProperty()
+  imdbrating = db.RatingProperty()
+  imdbvotes = db.IntegerProperty()
