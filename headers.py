@@ -3,8 +3,11 @@
 from nntplib import NNTP
 from nntpextensions import NNTPExtensions
 import re
-from multiprocessing import Pool
+#from multiprocessing import Pool
 from pymongo import Connection, DESCENDING
+from Queue import Queue as queue
+import Queue
+from threading import Thread
 
 
 def dict_group(news, name):
@@ -14,7 +17,7 @@ def dict_group(news, name):
     group['count'] = int(resp[1])
     group['first'] = int(resp[2])
     group['last'] = int(resp[3])
-    group['name'] = resp[4] 
+    group['name'] = resp[4]
     return group
 
 #def parse_header(header):
@@ -31,40 +34,48 @@ def dict_group(news, name):
 #    if not ('date' in header_dict and 'author' in header_dict and '_id' in header_dict and 'subject' in header_dict):
 #        raise Exception('Malformed response')
 #    m_snum = re.match('(.*) \((\d+)/(\d+)\)$', header_dict['subject'])
-#    if m_snum: 
+#    if m_snum:
 #       #header_dict['file_num'] = m_snum.group(1)
 #        #header_dict['file_total'] = m_snum.group(2)
 #        header_dict['file_id'] = m_snum.group(1)
 #       header_dict['part_num'] = m_snum.group(2)
 #       header_dict['part_total'] = m_snum.group(3)
-#    else: raise Exception('Malformed subject: %s' % header_dict['subject'])    
+#    else: raise Exception('Malformed subject: %s' % header_dict['subject'])
 #    return header_dict
 
+class KeyboardInterruptError(Exception): pass
 
+def worker(work_group):
+    while(True):
+        try:
+            workload = work_group.get(False)
+        except Queue.Empty:
+            return
 
-def worker(init, end, group_name):
-    try:
-        #print init, end
-        news = NNTPExtensions('eu.news.astraweb.com', user='vasc', password='otherplace')
-        group = dict_group(news, group_name)
-        db = Connection().usenet
-        resp, headers = news.xzver(str(init), str(end))
-        #print "worker:\t\t%s\n\t\t%s" % (resp, headers)
-        for h in headers:
-            if re.search("\.nzb[\'\"\s\)\]]", h[1]):
-                header = {'group': group_name, 
-                          '_id': h[4],
-                          'num': h[0],
-                          'subject': h[1],
-                          'date': h[3]}
-                try:
-                    db.headers.insert(header)
-                except: continue
-                print '%s - %s...' % (h[0], h[1][:100])
-        #print "init: %s, end: %s" % (init, end)
-        db.control.update({"init": init, "end": end, "group": group_name}, {"$set": {"done": True}}, multi=True)
-        news.quit()
-    except Exception as e: print e
+        (init, end, group_name) = workload
+        print 'running worker %s:%s' % (init, end)
+        try:
+            news = NNTPExtensions('eu.news.astraweb.com', user='vasc', password='otherplace')
+            group = dict_group(news, group_name)
+            db = Connection().usenet
+            resp, headers = news.xzver(str(init), str(end))
+            #print "worker:\t\t%s\n\t\t%s" % (resp, headers)
+            for h in headers:
+                if re.search("\.nzb[\'\"\s\)\]]", h[1]):
+                    header = {'group': group_name,
+                              '_id': h[4],
+                              'num': h[0],
+                              'subject': h[1],
+                              'date': h[3]}
+                    try:
+                        db.headers.insert(header)
+                    except: continue
+                    print '%s - %s...' % (h[0], h[1][:100])
+            #print "init: %s, end: %s" % (init, end)
+            db.control.update({"init": init, "end": end, "group": group_name}, {"$set": {"done": True}}, multi=True)
+            #print 'Done :)'
+            news.quit()
+        except Exception as e: print e
 
 def add_new_jobs(group_name):
     db = Connection().usenet
@@ -81,22 +92,35 @@ def add_new_jobs(group_name):
     while(i+10000 < group['last']):
         db.control.insert({'init': i, 'end': i+9999, 'done':False, "group": group_name})
         i += 10000
-    
+
     db.control.insert({'init': i, 'end': group['last'], 'done':False, "group": group_name})
-    
+
 
 def main(group_name):
     add_new_jobs(group_name)
 
     db = Connection().usenet
     while db.control.find({"done": False, "group": group_name}).count() > 0:
-        p = Pool(10)
-        for r in db.control.find({"done": False, "group": group_name}):
-            p.apply_async(worker, [r['init'], r['end'], group_name])
+        work_group = queue()
+        try:
+            count = 0
+            for r in db.control.find({"done": False, "group": group_name}):
+                count += 1
+                work_group.put([r['init'], r['end'], group_name])
 
-        p.close()
-        p.join()
+            threads = map(lambda x: Thread(name='thread_'+str(x), target=worker, args=(work_group,)), range(10))
+            for t in threads: t.start()
+            for t in threads: t.join()
+
+            #p.apply_async(worker, [r['init'], r['end'], group_name])
+            #p.close()
+            #p.join()
+        except KeyboardInterruptError:
+            print 'Keyboard ^_^'
+            #p.terminate()
+
 
 
 if __name__ == '__main__':
     main(group_name = 'alt.binaries.teevee')
+

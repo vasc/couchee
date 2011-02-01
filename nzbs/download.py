@@ -16,19 +16,21 @@ def download_articles(nntp, articles):
         response, number, msgid, lines = nntp.body(a['msgid'])
         if not response.startswith('222 '): raise Exception("Error downloading: '%s'" % response)
         if lines[0] == '': lines = lines[1:]
+
         info = yencdecode.decode_from_lines(lines)
-        nzbfile += open(info['tmpfilename']).read()
-        os.remove(info['tmpfilename'])
+        nzbfile += info['data']
+        #nzbfile += open(info['tmpfilename']).read()
+        #os.remove(info['tmpfilename'])
     return nzbfile
 
 def get_folder(nzb):
     db = pymongo.Connection().usenet
-    folder = db.config.find_one({'type': 'folder', 'category': 'undefined'})['folder'] 
+    folder = db.config.find_one({'type': 'folder', 'category': 'undefined'})['folder']
     if 'category' in nzb:
         c = db.config.find_one({'type': 'folder', 'category': nzb['category']})
         if c: folder = c['folder']
     return folder
-        
+
 
 
 def download_nzb(nzb_id, count=0):
@@ -36,7 +38,7 @@ def download_nzb(nzb_id, count=0):
         db = pymongo.Connection().usenet
         p = mp.current_process()
         if not 'news' in p.__dict__:
-            p.news = NNTP('eu.news.astraweb.com', user='vasc', password='otherplace') 
+            p.news = NNTP('eu.news.astraweb.com', user='vasc', password='otherplace')
         news = p.news
         nzb = db.nzbs.find_one({'_id': nzb_id})
         nzb['articles'].sort(key=lambda x: int(x['part']))
@@ -50,11 +52,13 @@ def download_nzb(nzb_id, count=0):
         #    nzbfile += open(info['tmpfilename']).read()
         #    os.remove(info['tmpfilename'])
         filename = uuid.uuid4()
-        if 'rlsname' in nzb: filename = nzb['rlsname'] + ".nzb.gz"
+        if 'rlsname' in nzb:
+            filename = re.sub('/', '.', nzb['rlsname']) + ".nzb.gz"
+
         nzb['file'] = filename
-        
+
         folder = get_folder(nzb)
-        
+
         f = gzip.open(os.path.join(folder, filename), 'wb')
         f.write(nzbfile)
         f.close()
@@ -87,24 +91,23 @@ def download_nzb(nzb_id, count=0):
             print i
             download_nzb(nzb_id, count+1)
         else:
-            p.news = NNTP('eu.news.astraweb.com', user='vasc', password='otherplace') 
+            p.news = NNTP('eu.news.astraweb.com', user='vasc', password='otherplace')
             news.quit()
-    db.disconnect()    
+    db.disconnect()
     #news.quit()
     #q.put(news)
 
-def download_nzbs():      
-    p = mp.Pool(10)    
+def download_nzbs():
+    p = mp.Pool(10)
     db = pymongo.Connection().usenet
     for nzb in db.nzbs.find({'$or': [{'stage': 1, 'tags': "#a.b.teevee@EFNet"},
                                      {'stage': 1, 'tags': "#a.b.moovee@EFNet"}]}):
         if int(nzb['total']) == 1 and len(nzb['articles']) > 1:
             nzb['articles'] = nzb['articles'][:1]
             db.nzbs.save(nzb)
-    
+
         if len(nzb['articles']) == int(nzb['total']):
             p.apply_async(download_nzb, [nzb['_id']])
     p.close()
     p.join()
-    
-    
+

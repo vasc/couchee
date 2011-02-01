@@ -3,7 +3,14 @@ import yenc
 import re
 import uuid
 import os
+import tempfile
 
+#def find_values(keys, string):
+#    results = {}
+#    for k in keys:
+#        m = re.search('k'+r'=([^\s\n\r]*)')
+#        results[k] = m.group(0)
+#    return results
 
 def decode_from_lines(lines):
     info = {}
@@ -22,12 +29,24 @@ def decode_from_lines(lines):
     if re.match("=ypart ", lines[1]):
         data = lines[2:-1]
     else: data = lines[1:-1]
-    fenc = open(info['uuid']+'.yenc', "w")
+    #fenc = open(info['uuid']+'.yenc', "w")
     data = '\n'.join(data)
-    fenc.write(data)
-    fenc.close()
-    info['tmpfilename'] = info['uuid'] + '.tmp'
-    yenc.decode(info['uuid']+'.yenc', info['tmpfilename'])
-    os.remove(info['uuid']+'.yenc')
+    #fenc.write(data)
+    #fenc.close()
+    file_encoded = tempfile.NamedTemporaryFile(delete=False)
+    file_encoded.write(data)
+    file_encoded.close()
+
+    file_decoded = tempfile.NamedTemporaryFile(delete=False)
+    file_decoded.close()
+
+    yenc.decode(str(file_encoded.name), str(file_decoded.name))
+
+    info['data'] = open(file_decoded.name, 'r').read()
+    file_decoded.close()
+
+    #info['tmpfilename'] = info['uuid'] + '.tmp'
+    #yenc.decode(info['uuid']+'.yenc', info['tmpfilename'])
+    #os.remove(info['uuid']+'.yenc')
     return info
 

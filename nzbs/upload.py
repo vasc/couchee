@@ -43,16 +43,18 @@ def upload_nzbs():
 def movie_publish():
     db = pymongo.Connection().usenet
     dbmovies = pymongo.Connection().imdb
-    for nzb in db.nzbs.find({'tags':'#a.b.moovee@EFNet', 'stages.movie_publish': {'$ne': True}}):
-        m = dbmovies.movies.find_one({'_id': nzb['movieid']})
-        if not 'published_info' in m['stages']:
-            data = urllib.urlencode([('apikey', 'e8aAqE7pFcKjuTnAoTe4'), ('movie', simplejson.dumps(m))])
-            urllib2.urlopen('http://coucheeb.appspot.com/api/imdbinfo/%s/' % m['_id'], data)
-            m['stages'].append('published_info')
-            dbmovies.movies.save(m)
-            print 'Published %s (%s)' % (m.name, m['_id'])
-        nzb['stages']['movie_publish'] = True
-        db.nzbs.save(nzb)    
+    for nzb in db.nzbs.find({'stages.uploaded': True, 'stages.downloaded': True, 'stages.movieid': True, 'tags':'#a.b.moovee@EFNet', 'stages.movie_publish': {'$ne': True}}):
+        m = dbmovies.movies.find_one({'_id': nzb['movieid'], 'stages': 'name'})
+        if m:
+            if not 'published_info' in m['stages']:
+                #print m
+                data = urllib.urlencode([('apikey', 'e8aAqE7pFcKjuTnAoTe4'), ('movie', simplejson.dumps(m))])
+                urllib2.urlopen('http://coucheeb.appspot.com/api/imdbinfo/%s/' % m['_id'], data)
+                m['stages'].append('published_info')
+                dbmovies.movies.save(m)
+                print 'Published %s (%s)' % (m['name'], m['_id'])
+            nzb['stages']['movie_publish'] = True
+            db.nzbs.save(nzb)    
 
 def movie_local_publish():
     db = pymongo.Connection().usenet
@@ -74,6 +76,7 @@ def cover_publish():
         data = urllib.urlencode([('secret', 'e8aAqE7pFcKjuTnAoTe4'), ('simple', 'true')])
         #
         m = dbmovies.movies.find_one({'_id': nzb['movieid']})
+        #print m
         if not m or not 'posters' in m:
             del nzb['stages']['poster']
             db.nzbs.save(nzb)
@@ -81,7 +84,7 @@ def cover_publish():
         if not 'cover_publish' in m['stages']:
             for p in m['posters']:
                 im = Image.open(os.path.join(folder, p))
-                im.resize((134, 193), Image.ANTIALIAS)
+                im = im.resize((134, 193), Image.ANTIALIAS)
                 f = tempfile.TemporaryFile()
                 im.save(f, 'jpeg')
                 f.seek(0)
@@ -92,8 +95,11 @@ def cover_publish():
                 request = urllib2.Request(url, datagen, headers)
                 urllib2.urlopen(request).read()
                 print 'Uploaded cover for release: %s' % nzb['rlsname']
-            m['stages'].append('cover_publish')    
+            m['stages'].append('cover_publish')
+            dbmovies.movies.save(m)    
         nzb['stages']['cover_publish'] = True
+        db.nzbs.save(nzb)
+        
 
 def cover_local_publish():
     db = pymongo.Connection().usenet
@@ -138,7 +144,7 @@ def publish_nzbs():
     for nzb in db.nzbs.find({'stages.published': {'$ne': True}, 'stages.uploaded': True, 'stages.downloaded': True, 'stages.movieid': True, 'tags':'#a.b.moovee@EFNet'}):
         data = urllib.urlencode([('rlsname', nzb['rlsname']), ('nzblink', nzb['url']), ('imdblink', nzb['link']), ('nzbdate', str(nzb['date'])), ('secret', 'e8aAqE7pFcKjuTnAoTe4')])
         r = urllib2.urlopen('http://coucheeb.appspot.com/upload', data)
-        if r.geturl() == 'http://coucheeb.appspot.com/':
+        if r.geturl() == 'http://coucheeb.appspot.com/api/dummy/':
             nzb['stages']['published'] = True
             db.nzbs.save(nzb)
             print 'published', nzb['rlsname']
