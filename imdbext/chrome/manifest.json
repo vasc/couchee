@@ -1,7 +1,7 @@
 {
   "name": "Couchee Links",
   "description": "Creates links on IMDB.com pages to nzb files",
-  "version": "0.5",
+  "version": "0.5.1",
   "permissions": ["contextMenus", "tabs", "http://coucheeb.appspot.com/api/nzblink/*"],
   "background_page": "background.html",
   "icons": {
@@ -17,7 +17,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://*.imdb.com/*"],
+      "matches": ["http://*.imdb.com/*", "http://*.google.com/*"],
       "js": ["jquery-1.5.min.js", "content.js"]
     }
   ]

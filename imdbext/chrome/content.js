@@ -1,4 +1,5 @@
-link = /^\/title\/(tt\d{7})\/$/;
+link = /\/title\/(tt\d{7})\/$/;
+
 
 function response(data){
     r = JSON.parse(data['response']);
@@ -8,7 +9,9 @@ function response(data){
         newel.css('padding-left', '6px');
         newel.css('vertical-align', 'middle');
 
+        el.attr('data-couchee', null)
         el.after(newel);
+
     }
 }
 

@@ -348,7 +348,7 @@ def id_movies():
         #if 'no nfo' in nzb['stages']: continue #print 'No IMDB', nzb['rlsname'];
         folder = db.config.find_one({'type': 'folder', 'category': 'moovee'})['folder']
         filename = nzb['file']
-        nntp = NNTP('eu.news.astraweb.com', user='vasc', password='otherplace')
+        nntp = NNTP('eu.news.astraweb.com', user='vasc', password='dZeZlO89hY6F')
         try:
             it = False
             root = objectify.parse(gzip.open(os.path.join(folder, filename), 'rb')).getroot()

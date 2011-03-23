@@ -38,7 +38,7 @@ def download_nzb(nzb_id, count=0):
         db = pymongo.Connection().usenet
         p = mp.current_process()
         if not 'news' in p.__dict__:
-            p.news = NNTP('eu.news.astraweb.com', user='vasc', password='otherplace')
+            p.news = NNTP('eu.news.astraweb.com', user='vasc', password='dZeZlO89hY6F')
         news = p.news
         nzb = db.nzbs.find_one({'_id': nzb_id})
         nzb['articles'].sort(key=lambda x: int(x['part']))
@@ -91,7 +91,7 @@ def download_nzb(nzb_id, count=0):
             print i
             download_nzb(nzb_id, count+1)
         else:
-            p.news = NNTP('eu.news.astraweb.com', user='vasc', password='otherplace')
+            p.news = NNTP('eu.news.astraweb.com', user='vasc', password='dZeZlO89hY6F')
             news.quit()
     db.disconnect()
     #news.quit()

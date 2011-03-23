@@ -55,7 +55,7 @@ def worker(work_group):
         (init, end, group_name) = workload
         print 'running worker %s:%s' % (init, end)
         try:
-            news = NNTPExtensions('eu.news.astraweb.com', user='vasc', password='otherplace')
+            news = NNTPExtensions('eu.news.astraweb.com', user='vasc', password='dZeZlO89hY6F')
             group = dict_group(news, group_name)
             db = Connection().usenet
             resp, headers = news.xzver(str(init), str(end))
@@ -82,7 +82,7 @@ def add_new_jobs(group_name):
     max_h = db.control.find({"group": group_name}).sort('end', DESCENDING).limit(1)[0]['end'] + 1
     if not max_h: max_h = 0
 
-    news = NNTP('eu.news.astraweb.com', user='vasc', password='otherplace')
+    news = NNTP('eu.news.astraweb.com', user='vasc', password='dZeZlO89hY6F')
     group = dict_group(news, group_name)
     news.quit()
 
