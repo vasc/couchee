@@ -53,7 +53,7 @@ def worker(work_group):
             return
 
         (init, end, group_name) = workload
-        print 'running worker %s:%s' % (init, end)
+        #print 'running worker %s:%s' % (init, end)
         try:
             news = NNTPExtensions('eu.news.astraweb.com', user='vasc', password='dZeZlO89hY6F')
             group = dict_group(news, group_name)
@@ -89,9 +89,9 @@ def add_new_jobs(group_name):
     i = max(group['first'], max_h)
 
     if max_h > group['last']: return
-    while(i+10000 < group['last']):
-        db.control.insert({'init': i, 'end': i+9999, 'done':False, "group": group_name})
-        i += 10000
+    while(i+100000 < group['last']):
+        db.control.insert({'init': i, 'end': i+99999, 'done':False, "group": group_name})
+        i += 100000
 
     db.control.insert({'init': i, 'end': group['last'], 'done':False, "group": group_name})
 

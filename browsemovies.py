@@ -2,6 +2,7 @@ import pymongo
 from sys import stdin
 import re
 import urllib
+import pprint
 
 def main():
     db = pymongo.Connection().usenet
@@ -17,11 +18,11 @@ def main():
         s = stdin.readline()
         if s == 'exit\n': return
         m = re.match(r"^p\s+(\d+)\n", s)
-        m2 = re.amtch(r"^rm\s+(\d+)\n", s)
+        m2 = re.match(r"^rm\s+(\d+)\n", s)
         if m:
             i = int(m.group(1))
             nzb = nzbs[i]
-            print nzb
+            pprint.pprint( nzb )
         elif m2:
             print 'not implemented yet ;)'
             

@@ -105,6 +105,9 @@ def download_nzbs():
         if int(nzb['total']) == 1 and len(nzb['articles']) > 1:
             nzb['articles'] = nzb['articles'][:1]
             db.nzbs.save(nzb)
+        else:
+            nzb['articles'] = dict( (a['part'], a ) for a in nzb['articles'] ).values()
+            db.nzbs.save(nzb)
 
         if len(nzb['articles']) == int(nzb['total']):
             p.apply_async(download_nzb, [nzb['_id']])

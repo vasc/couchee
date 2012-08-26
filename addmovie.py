@@ -18,12 +18,13 @@ def main(nzb_file):
     nzb = {'category': 'moovee'}
     f = open(nzb_file, 'r')
     date = d.fromtimestamp(int(objectify.parse(f).getroot().file.attrib['date']))
-    f.seek(0)
+
+    f2 = open(nzb_file, 'r')
     
     folder = nzbs.download.get_folder(nzb)
     fgz = gzip.open(os.path.join(folder, filename+'.gz'), 'wb')
-    fgz.write(f.read())
-    f.close()
+    fgz.write(f2.read())
+    f2.close()
     fgz.close()
     
     nzb['_id'] = rlsname

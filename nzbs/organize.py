@@ -44,7 +44,7 @@ def moovee_tag(nzb, db):
     m = re.search(r'\s*\[\s*FULL\s*\]\s*-?\s*\[\s*#a.b.moovee@EFNet\s*\]\s*-?\s*\[\s*([^\s\]]*)\s*\]', nzb['_id'], re.I)
     if not m: m = re.search(r'\s*\[\s*#a.b.moovee@EFNet\s*\]\s*-?\s*\[\s*FULL\s*\]\s*-?\s*\[\s*([^\s\]]*)\s*\]', nzb['_id'], re.I)
     
-    if nzb['group'] == 'alt.binaries.moovee' and m:
+    if nzb['group'] in ('alt.binaries.moovee', 'alt.binaries.movies.divx') and m:
         nzb['rlsname'] = m.group(1)
         if not 'tags' in nzb: nzb['tags'] = []
         nzb['tags'].append('#a.b.moovee@EFNet')

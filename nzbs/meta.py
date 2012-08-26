@@ -351,6 +351,7 @@ def id_movies():
         nntp = NNTP('eu.news.astraweb.com', user='vasc', password='dZeZlO89hY6F')
         try:
             it = False
+            print filename
             root = objectify.parse(gzip.open(os.path.join(folder, filename), 'rb')).getroot()
             for f in root.getchildren():
                 if f.tag == '{http://www.newzbin.com/DTD/2003/nzb}file':
@@ -398,6 +399,15 @@ def id_movies():
                 nzb['stages']['error'] = '430 nfo'
                 db.nzbs.save(nzb)
             print articles, e
+        except IOError as e:
+            if str(e).startswith("Not a gzipped file"):
+                nzb['error'] = {'value': 424, 'msg': str(e), 'help': ''}
+                nzb['stage'] = 400
+                nzb['stages']['error'] = True
+                db.nzbs.save(nzb)
+            else:
+                print e
+                print filename
         #except Exception:
         #     print 'error'
         #     continue

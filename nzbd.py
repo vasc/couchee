@@ -10,13 +10,15 @@ import sys
 if __name__ == "__main__":
     #print os.getcwd()
     #os.chdir('/home/vasco/projects/moviedatabase')
-    logging.basicConfig(filename='/var/nzbs/nzbd.log',level=logging.INFO, format='[%(levelname)s] %(asctime)s %(message)s')
+    logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(asctime)s %(message)s')
+    #filename='/var/nzbs/nzbd.log',
     logging.info("Starting nzbd")
     #print os.getcwd()
     print "downloading headers...",
     sys.stdout.flush()
     headers.main(group_name = 'alt.binaries.teevee')
     headers.main(group_name = 'alt.binaries.moovee')
+    headers.main(group_name = 'alt.binaries.movies.divx')
     print "done"
     print "organizing nzbs...",
     sys.stdout.flush()

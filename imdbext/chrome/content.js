@@ -1,7 +1,9 @@
 link = /\/title\/(tt\d{7})\/$/;
 
+var port = chrome.extension.connect();
 
-function response(data){
+port.onMessage.addListener(function (data){
+    console.log("responding");
     r = JSON.parse(data['response']);
     if(r.length > 0){
         el = $('[data-couchee='+data['id']+']');
@@ -13,7 +15,7 @@ function response(data){
         el.after(newel);
 
     }
-}
+});
 
 $('[href*=title]:not(:has(img))').each(function(index, el){
     el = $(el);
@@ -21,7 +23,8 @@ $('[href*=title]:not(:has(img))').each(function(index, el){
     if(m){
         id = m[1];
         el.attr('data-couchee', id);
-        chrome.extension.sendRequest({'action' : 'getNzbLink', 'id': id},  response);
+	console.log(port)
+        port.postMessage({'action' : 'getNzbLink', 'id': id});
     }
 });
 

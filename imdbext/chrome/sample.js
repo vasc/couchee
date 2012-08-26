@@ -5,8 +5,7 @@
 // A generic onclick callback function.
 function binsearchOnClick(info, tab) {
 
-  id = /\d{7}/;
-  m = info["linkUrl"].match(id);
+  var id = /\d{7}/, m = info.linkUrl.match(id);
   console.log(m);
   if(m){
       chrome.tabs.create({url: "http://binsearch.info/index.php?m=n&q=tt"+m[0]});
@@ -30,14 +29,14 @@ console.log("'" + context + "' item:" + id);
 
 function checkForValidUrl(tabId, changeInfo, tab) {
     // If the letter 'g' is found in the tab's URL...
-    link = /imdb.*\/title\/(tt\d{7})/;
-    m = tab.url.match(link);
+    var link = /imdb.*\/title\/(tt\d{7})/;
+    var m = tab.url.match(link);
     if (m) {
         // ... show the page action.
         chrome.pageAction.show(tabId);
         var xhr = new XMLHttpRequest();
         xhr.open("GET", 'http://coucheeb.appspot.com/api/nzblink/'+m[1]+'/', true);
-        id = m[1]
+        id = m[1];
         xhr.onreadystatechange = function(){
             if (xhr.readyState == 4) {
                 // JSON.parse does not evaluate the attacker's scripts.
@@ -47,20 +46,20 @@ function checkForValidUrl(tabId, changeInfo, tab) {
                     localStorage[id] = xhr.responseText;
                     console.log(localStorage[id]);
                     chrome.pageAction.setIcon({tabId: tabId, path: 'favicon.ico'});
-                    chrome.pageAction.setTitle({tabId: tabId, title: resp[0].rlsname})
+                    chrome.pageAction.setTitle({tabId: tabId, title: resp[0].rlsname});
                 }
             }
         };
         xhr.send();
     }
-};
+}
 
 function pageActionHandler(tab){
     link = /imdb.*\/title\/(tt\d{7})/;
     m = tab.url.match(link);
     if (m) {
         direct = localStorage[m[1]];
-        console.log(direct)
+        console.log(direct);
         if(direct){
             chrome.tabs.create({url: JSON.parse(direct)[0].nzblink});
         }
@@ -73,15 +72,16 @@ function pageActionHandler(tab){
 chrome.pageAction.onClicked.addListener(pageActionHandler);
 chrome.tabs.onUpdated.addListener(checkForValidUrl);
 
-chrome.extension.onRequest.addListener(function(request, sender, sendResponse){
-    var xhr = new XMLHttpRequest();
-    var id = request['id'];
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", 'http://coucheeb.appspot.com/api/nzblink/'+id+'/', true);
-    xhr.onreadystatechange = function(){
-        sendResponse({id: id, response: xhr.responseText});
-        console.log(xhr.responseText);
-    };
-    xhr.send();
+chrome.extension.onConnect.addListener(function(port) {
+	port.onMessage.addListener(function(request){
+		var id = request.id;
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET", 'http://coucheeb.appspot.com/api/nzblink/'+id+'/', true);
+		xhr.onreadystatechange = function(){
+		    port.postMessage({id: id, response: xhr.responseText});
+		    //console.log(xhr.responseText);
+		};
+		xhr.send();
+	});
 });
 
